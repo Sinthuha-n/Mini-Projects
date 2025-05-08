@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Number</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: linear-gradient(to right, #8e2de2, #4a00e0);
+          color: #fff;
+          text-align: center;
+          margin-top: 100px;
+        }
+    
+        h1 {
+          font-size: 2em;
+          margin-bottom: 20px;
+        }
+    
+        input, button {
+          padding: 10px;
+          font-size: 1em;
+          border: none;
+          border-radius: 5px;
+          margin: 10px;
+        }
+    
+        input {
+          width: 50px;
+          text-align: center;
+        }
+    
+        button {
+          background-color: #00c9ff;
+          color: white;
+          cursor: pointer;
+          transition: background 0.3s ease;
+        }
+    
+        button:hover {
+          background-color: #005bea;
+        }
+    
+        p {
+          font-size: 1.2em;
+          margin: 10px;
+        }
+    
+        #score {
+          font-weight: bold;
+        }
+      </style>
+</head>
+<body>
+    <h1><b>Guess the Number 1 to 10<br>Play Fun</b></h1>
+    <input id="guessNum">
+    <button onclick="check()">Check</button>
+    <p id="result">You are right/wrong</p>
+    <p id="score">Score:10</p>
+
+
+<script>
+    var guessNum = document.getElementById("guessNum")
+    var result = document.getElementById("result")
+    var score = document.getElementById("score")
+    var randomNum = Math.floor(Math.random()*10)+1
+    var total_score=10
+
+    function check(){
+        var enteredNum = Number(guessNum.value)
+        console.log("Entered:", enteredNum, " Random:", randomNum);
+
+        if(randomNum === enteredNum ){
+            console.log("Right")
+            result.textContent = "Right"
+            alert("You Won....");
+        }
+        else{
+            total_score=total_score-1
+            score.textContent="Score:"+total_score
+            result.textContent="wrong"
+        }
+        guessNum.value = ""
+    }
+</script>
+</body>
+</html>
