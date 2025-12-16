@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Modern Kanban Board UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* --- 1. Color Palette & Base Styles --- */
+        :root {
+            --color-bg-main: #F8F9FA;          /* Main Background */
+            --color-bg-column: #E9ECEF;        /* Column Container Gray */
+            --color-bg-card: #FFFFFF;          /* Card White */
+            --color-primary-text: #212529;      /* Dark Text */
+            --color-secondary-text: #6C757D;    /* Subtle Gray Text */
+            --color-accent-blue: #007BFF;      /* Primary Accent Blue (from ref image) */
+            --color-accent-light-blue: #DEEBFF; /* Highlight/Active Blue */
+            
+            /* Priority Colors */
+            --color-priority-high: #DC3545;     /* Red */
+            --color-priority-medium: #FFC107;   /* Yellow */
+            --color-priority-low: #28A745;      /* Green */
+
+            /* Shadows and Radius */
+            --shadow-soft: 0 3px 8px rgba(0, 0, 0, 0.08); /* Card Shadow */
+            --shadow-lifted: 0 12px 25px rgba(0, 0, 0, 0.25); /* Dragging Shadow */
+            --border-radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg-main);
+            color: var(--color-primary-text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- 2. Layout Structure & Responsiveness --- */
+        .app-container {
+            display: flex;
+            padding: 20px;
+        }
+        
+        /* Main Kanban Area */
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto; /* Allows horizontal scrolling on small screens */
+            padding-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .kanban-column {
+            flex: 0 0 320px; /* Fixed width for columns on desktop */
+            background-color: var(--color-bg-column);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-height: 80vh;
+            /* Prevents column from shrinking smaller than content */
+            min-width: 320px; 
+        }
+
+        /* Column Header */
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-primary-text);
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .column-count {
+            font-weight: 500;
+            color: var(--color-secondary-text);
+        }
+
+        /* --- 3. Task Card Styling and Data Points --- */
+        .task-card {
+            background-color: var(--color-bg-card);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--shadow-soft);
+            cursor: grab;
+            transition: all 0.2s ease-in-out;
+            border-left: 5px solid transparent; /* Used for priority border */
+        }
+
+        /* Hover & Drag-and-Drop Visuals */
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12); /* Increased shadow on hover */
+        }
+        
+        /* Simulates dragging card */
+        .task-card.dragging {
+            opacity: 0.9;
+            transform: translateY(-8px) rotate(0.5deg);
+            box-shadow: var(--shadow-lifted);
+            /* Z-index to show it floating over other cards */
+            position: relative; 
+            z-index: 100;
+        }
+
+        /* Task Content Details */
+        .task-title {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .task-description {
+            font-size: 13px;
+            color: var(--color-secondary-text);
+            margin-bottom: 10px;
+            line-height: 1.4;
+            /* Ensure 2 lines are visible */
+            height: 36px; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Priority Tag Styling */
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .tag.high { background-color: var(--color-priority-high); color: white; }
+        .tag.medium { background-color: var(--color-priority-medium); color: var(--color-primary-text); }
+        .tag.low { background-color: var(--color-priority-low); color: white; }
+
+        /* Footer Metadata */
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.1);
+        }
+
+        .metadata-group {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: var(--color-secondary-text);
+            gap: 15px;
+        }
+
+        .user-assigned {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 5px;
+            background-color: var(--color-accent-blue);
+            font-size: 12px;
+            color: white;
+            text-align: center;
+            line-height: 24px;
+            flex-shrink: 0;
+        }
+
+        .due-date i {
+            margin-right: 5px;
+        }
+
+        /* Progress Bar Styling */
+        .progress-container {
+            flex-grow: 1;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: var(--color-bg-column);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--color-accent-blue);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--color-accent-blue);
+            margin-bottom: 4px;
+        }
+
+        /* Status Badge (Matching Column) */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: white;
+            white-space: nowrap;
+        }
+
+        /* Column-specific badge colors */
+        .status-backlog { background-color: #6C757D; }
+        .status-todo { background-color: #007BFF; }
+        .status-progress { background-color: #FFC107; }
+        .status-review { background-color: #6F42C1; }
+        .status-done { background-color: #28A745; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+      
+        <div class="kanban-board">
+            
+            <div class="kanban-column">
+                <div class="column-header">Backlog <span class="column-count">(2)</span></div>
+                
+                <div class="task-card" style="border-left-color: var(--color-priority-medium);">
+                    <span class="tag medium">Medium</span>
+                    <div class="task-title">Investigate new database options</div>
+                    <div class="task-description">Research and compile a report on NoSQL vs. modern relational databases for scalability.</div>
+                    
+                    <div class="task-footer">
+                        <div class="metadata-group">
+                            <div class="user-assigned"><div class="user-avatar">SN</div> Sinthu</div>
+                            <div class="due-date"><i class="far fa-calendar-alt"></i> 10/Feb</div>
+                        </div>
+                        <span class="status-badge status-backlog">Backlog</span>
+                    </div>
+                </div>
+
+                <div class="task-card" style="border-left-color: var(--color-priority-low);">
+                    <span class="tag low">Low</span>
+                    <div class="task-title">Documentation review and updates</div>
+                    <div class="task-description">Update all internal documentation for the new API changes and system structure.</div>
+                    <div class="task-footer">
+                        <div class="metadata-group">
+                            <div class="user-assigned"><div class="user-avatar">SN</div> Sinthu</div>
+                            <div class="due-date"><i class="far fa-calendar-alt"></i> 28/Feb</div>
+                        </div>
+                        <span class="status-badge status-backlog">Backlog</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kanban-column">
+                <div class="column-header">To Do <span class="column-count">(1)</span></div>
+                
+                <div class="task-card" style="border-left-color: var(--color-priority-high);">
+                    <span class="tag high">High</span>
+                    <div class="task-title">Design V2 wireframes for dashboard</div>
+                    <div class="task-description">Create detailed wireframes focusing on the new analytics widgets and user navigation.</div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-text">Progress: 10%</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 10%;"></div></div>
+                    </div>
+                    
+                    <div class="task-footer">
+                        <div class="metadata-group">
+                            <div class="user-assigned"><div class="user-avatar" style="background-color: #6C757D;">KM</div> Kamal</div>
+                            <div class="due-date"><i class="far fa-calendar-alt"></i> 20/Jan</div>
+                        </div>
+                        <span class="status-badge status-todo">To Do</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kanban-column">
+                <div class="column-header">In Progress <span class="column-count">(2)</span></div>
+
+                <div class="task-card dragging" style="border-left-color: var(--color-priority-high); margin-top: -10px;">
+                    <span class="tag high">High</span>
+                    <div class="task-title">Implement user authentication service</div>
+                    <div class="task-description">Write backend code for JWT generation, token validation, and secure password hashing.</div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-text">Progress: 75%</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 75%;"></div></div>
+                    </div>
+                    
+                    <div class="task-footer">
+                        <div class="metadata-group">
+                            <div class="user-assigned"><div class="user-avatar">KT</div> Kalai</div>
+                            <div class="due-date"><i class="far fa-calendar-alt"></i> 05/Jan</div>
+                        </div>
+                        <span class="status-badge status-progress">In Progress</span>
+                    </div>
+                </div>
+                
+                <div class="task-card" style="border-left-color: var(--color-priority-medium);">
+                    <span class="tag medium">Medium</span>
+                    <div class="task-title">Refactor codebase to TypeScript</div>
+                    <div class="task-description">Convert existing JavaScript modules to TypeScript for better type safety and maintainability.</div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-text">Progress: 40%</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 40%;"></div></div>
+                    </div>
+
+                    <div class="task-footer">
+                        <div class="metadata-group">
+                            <div class="user-assigned"><div class="user-avatar" style="background-color: #17A2B8;">ND</div> Nila</div>
+                            <div class="due-date"><i class="far fa-calendar-alt"></i> 15/Jan</div>
+                        </div>
+                        <span class="status-badge status-progress">In Progress</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="kanban-column" style="background-color: var(--color-accent-light-blue);">
+                <div class="column-header">Review <span class="column-count">(1)</span></div>
+                
+                <div class="task-card" style="border-left-color: var(--color-priority-high);">
+                    <span class="tag high">High</span>
+                    <div class="task-title">API integration for third-party billing</div>
+                    <div class="task-description">Code requires testing for edge cases and security review before merging to production branch.</div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-text">Progress: 95%</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 95%;"></div></div>
+                    </div>
+
+                    <div class="task-footer">
+                        <div class="metadata-group">
+                            <div class="user-assigned"><div class="user-avatar">SN</div> Sinthu</div>
+                            <div class="due-date"><i class="far fa-calendar-alt"></i> 01/Jan</div>
+                        </div>
+                        <span class="status-badge status-review">Review</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kanban-column">
+                <div class="column-header">Done <span class="column-count">(1)</span></div>
+                
+                <div class="task-card" style="border-left-color: var(--color-priority-low);">
+                    <span class="tag low">Low</span>
+                    <div class="task-title">Setup CI/CD pipeline initial draft</div>
+                    <div class="task-description">Completed the basic pipeline for staging deployment. Ready for further configuration.</div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-text">Progress: 100%</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: var(--color-priority-low);"></div></div>
+                    </div>
+                    
+                    <div class="task-footer">
+                        <div class="metadata-group">
+                            <div class="user-assigned"><div class="user-avatar">JR</div> Jananie</div>
+                            <div class="due-date"><i class="far fa-calendar-alt"></i> 25/Dec</div>
+                        </div>
+                        <span class="status-badge status-done">Done</span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+</body>
+</html>
